@@ -55,7 +55,7 @@ class FloateryPlugin:
         buf = self.nvim.current.buffer
         options = self.floatingWindowConfig
         self.floatingWindow = self.nvim.eval(
-            f'nvim_open_win({buf.number}, 0, {options})'
+            f'nvim_open_win({buf.number}, 1, {options})'
         )
 
     def _update_floating_window(self):
