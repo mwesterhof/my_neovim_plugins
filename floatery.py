@@ -8,6 +8,8 @@ class FloateryPlugin:
     def __init__(self, nvim):
         self.nvim = nvim
         self.floatingWindow = None
+        self.reopen_buffer = None
+        self.buffer = None
         self.floatingWindowConfig = {
             'relative': 'editor',
             'width': 50,
@@ -33,6 +35,8 @@ class FloateryPlugin:
         else:
             self._update_floating_window()
 
+        self.reopen_buffer = self.nvim.eval(f'winbufnr({self.floatingWindow})')
+
     @neovim.command('UnFloatIt')
     def unfloat_it(self):
         self.nvim.command_output(
@@ -52,11 +56,18 @@ class FloateryPlugin:
         self.floatingWindowConfig.update({'col': col, 'row': row})
 
     def _open_floating_window(self):
-        buf = self.nvim.current.buffer
+        self.buffer = self.reopen_buffer
+        if self.buffer is None:
+            self.buffer = self.nvim.current.buffer.number
+
         options = self.floatingWindowConfig
-        self.floatingWindow = self.nvim.eval(
-            f'nvim_open_win({buf.number}, 1, {options})'
-        )
+        try:
+            self.floatingWindow = self.nvim.eval(
+                f'nvim_open_win({self.buffer}, 1, {options})'
+            )
+        except Exception:
+            self.buffer = None
+            self._open_floating_window()
 
     def _update_floating_window(self):
         options = self.floatingWindowConfig
