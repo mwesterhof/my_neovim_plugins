@@ -25,20 +25,17 @@ class FloateryPlugin:
 
     @neovim.command('FloatIt', nargs='?')
     def float_it(self, arg):
-        self.log(repr(arg))
         if not arg:
             if self.floatingWindow is not None:
                 self._unfloat_it()
                 return
-            self.log('settings default size')
             arg = self.default_size
+        self.log(repr(arg))
 
         if self.size_percent:
-            self.log('getting size from cache')
             width_percent = self.size_percent['width']
             height_percent = self.size_percent['height']
         else:
-            self.log('getting size from args')
             width_percent, height_percent = [int(i) for i in arg[0].split()]
 
         self._update_config(width_percent, height_percent)
@@ -52,17 +49,11 @@ class FloateryPlugin:
             'height': height_percent
         }
         self.reopen_buffer = self.nvim.eval(f'winbufnr({self.floatingWindow})')
-        self.log(
-            f'setting reopen buffer from float_it to {self.reopen_buffer}'
-        )
 
     def _unfloat_it(self):
         buffer_value = self.nvim.eval(f'winbufnr({self.floatingWindow})')
         if buffer_value > 0:
             self.reopen_buffer = buffer_value
-        self.log(
-            f'setting reopen buffer from _unfloat_it to {self.reopen_buffer}'
-        )
         try:
             self.nvim.command_output(
                 f'call nvim_win_close({self.floatingWindow}, 0)')
@@ -95,8 +86,7 @@ class FloateryPlugin:
             self.floatingWindow = self.nvim.eval(
                 f'nvim_open_win({self.buffer}, 1, {options})'
             )
-        except Exception as e:
-            self.log(str(e))
+        except Exception:
             self.buffer = None
             self._open_floating_window()
 
